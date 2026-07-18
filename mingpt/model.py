@@ -208,11 +208,12 @@ class GPT(nn.Module):
 
         # copy while ensuring all of the parameters are aligned and match in names and shapes；复制时确保参数名和形状都对齐
         keys = [k for k in sd_hf if not k.endswith('attn.masked_bias')] # ignore these；忽略这些缓冲参数
+        keys_sd = [k for k in sd if not k.endswith('.attn.bias')] # ignore minGPT causal mask buffers；忽略 minGPT 的因果掩码缓冲区
         transposed = ['attn.c_attn.weight', 'attn.c_proj.weight', 'mlp.c_fc.weight', 'mlp.c_proj.weight']
         # basically the openai checkpoints use a "Conv1D" module, but we only want to use a vanilla nn.Linear.
         # this means that we have to transpose these weights when we import them
         # 基本原因是 OpenAI 检查点使用 "Conv1D" 模块，而这里使用普通 nn.Linear；导入时需要转置这些权重。
-        assert len(keys) == len(sd)
+        assert len(keys) == len(keys_sd)
         for k in keys:
             if any(k.endswith(w) for w in transposed):
                 # special treatment for the Conv1D weights we need to transpose；需要转置的 Conv1D 权重做特殊处理
