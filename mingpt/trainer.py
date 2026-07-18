@@ -1,6 +1,9 @@
 """
 Simple training loop; Boilerplate that could apply to any arbitrary neural network,
 so nothing in this file really has anything to do with GPT specifically.
+
+简单训练循环；这里是适用于任意神经网络的样板代码，
+因此本文件本身并不强依赖 GPT 的具体结构。
 """
 
 import time
@@ -15,16 +18,16 @@ class Trainer:
     @staticmethod
     def get_default_config():
         C = CN()
-        # device to train on
+        # device to train on；训练所使用的设备
         C.device = 'auto'
-        # dataloder parameters
+        # dataloder parameters；数据加载器参数
         C.num_workers = 4
-        # optimizer parameters
+        # optimizer parameters；优化器参数
         C.max_iters = None
         C.batch_size = 64
         C.learning_rate = 3e-4
         C.betas = (0.9, 0.95)
-        C.weight_decay = 0.1 # only applied on matmul weights
+        C.weight_decay = 0.1 # only applied on matmul weights；仅作用于矩阵乘法权重
         C.grad_norm_clip = 1.0
         return C
 
@@ -35,7 +38,7 @@ class Trainer:
         self.train_dataset = train_dataset
         self.callbacks = defaultdict(list)
 
-        # determine the device we'll train on
+        # determine the device we'll train on；确定训练设备
         if config.device == 'auto':
             self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         else:
@@ -43,7 +46,7 @@ class Trainer:
         self.model = self.model.to(self.device)
         print("running on device", self.device)
 
-        # variables that will be assigned to trainer class later for logging and etc
+        # variables that will be assigned to trainer class later for logging and etc；稍后用于日志等用途的训练状态变量
         self.iter_num = 0
         self.iter_time = 0.0
         self.iter_dt = 0.0
@@ -61,10 +64,10 @@ class Trainer:
     def run(self):
         model, config = self.model, self.config
 
-        # setup the optimizer
+        # setup the optimizer；初始化优化器
         self.optimizer = model.configure_optimizers(config)
 
-        # setup the dataloader
+        # setup the dataloader；初始化数据加载器
         train_loader = DataLoader(
             self.train_dataset,
             sampler=torch.utils.data.RandomSampler(self.train_dataset, replacement=True, num_samples=int(1e10)),
@@ -80,7 +83,7 @@ class Trainer:
         data_iter = iter(train_loader)
         while True:
 
-            # fetch the next batch (x, y) and re-init iterator if needed
+            # fetch the next batch (x, y) and re-init iterator if needed；取下一批数据，必要时重建迭代器
             try:
                 batch = next(data_iter)
             except StopIteration:
@@ -89,10 +92,10 @@ class Trainer:
             batch = [t.to(self.device) for t in batch]
             x, y = batch
 
-            # forward the model
+            # forward the model；前向传播
             logits, self.loss = model(x, y)
 
-            # backprop and update the parameters
+            # backprop and update the parameters；反向传播并更新参数
             model.zero_grad(set_to_none=True)
             self.loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), config.grad_norm_clip)
@@ -104,6 +107,6 @@ class Trainer:
             self.iter_dt = tnow - self.iter_time
             self.iter_time = tnow
 
-            # termination conditions
+            # termination conditions；终止条件
             if config.max_iters is not None and self.iter_num >= config.max_iters:
                 break

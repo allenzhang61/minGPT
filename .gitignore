@@ -3,3 +3,7 @@ __pycache__/
 *.swp
 .env
 .pylintrc
+
+build/
+.idea/
+minGPT.egg-info/
