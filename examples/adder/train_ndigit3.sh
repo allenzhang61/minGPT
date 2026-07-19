@@ -5,11 +5,11 @@ set -euo pipefail
 # 训练 3 位数加法模型。
 #
 # Usage:
-#   bash examples/train_adder_ndigit3.sh
+#   bash examples/adder/train_ndigit3.sh
 #
 # Optional overrides:
-#   MAX_ITERS=50000 bash examples/train_adder_ndigit3.sh
-#   BATCH_SIZE=128 MAX_ITERS=50000 bash examples/train_adder_ndigit3.sh
+#   MAX_ITERS=50000 bash examples/adder/train_ndigit3.sh
+#   BATCH_SIZE=128 MAX_ITERS=50000 bash examples/adder/train_ndigit3.sh
 
 python projects/adder/adder.py \
   --data.ndigit=3 \

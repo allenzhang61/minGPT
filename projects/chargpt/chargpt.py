@@ -25,6 +25,8 @@ def get_config():
     C.system = CN()
     C.system.seed = 3407
     C.system.work_dir = './out/chargpt'
+    C.system.sample_interval = 500
+    C.system.sample_tokens = 500
 
     # data；数据配置
     C.data = CharDataset.get_default_config()
@@ -114,14 +116,16 @@ if __name__ == '__main__':
         if trainer.iter_num % 10 == 0:
             print(f"iter_dt {trainer.iter_dt * 1000:.2f}ms; iter {trainer.iter_num}: train loss {trainer.loss.item():.5f}")
 
-        if trainer.iter_num % 500 == 0:
+        if trainer.iter_num > 0 and trainer.iter_num % config.system.sample_interval == 0:
             # evaluate both the train and test score；评估并生成样例文本
             model.eval()
             with torch.no_grad():
                 # sample from the model...；从模型中采样生成文本
-                context = "O God, O God!"
+                default_context = "O God, O God!"
+                # fall back to the start of the corpus if the default prompt has unseen characters；如果默认提示词含有未见字符，就退回训练文本开头
+                context = default_context if all(s in train_dataset.stoi for s in default_context) else text[:min(16, len(text))]
                 x = torch.tensor([train_dataset.stoi[s] for s in context], dtype=torch.long)[None,...].to(trainer.device)
-                y = model.generate(x, 500, temperature=1.0, do_sample=True, top_k=10)[0]
+                y = model.generate(x, config.system.sample_tokens, temperature=1.0, do_sample=True, top_k=10)[0]
                 completion = ''.join([train_dataset.itos[int(i)] for i in y])
                 print(completion)
             # save the latest model；保存最新模型

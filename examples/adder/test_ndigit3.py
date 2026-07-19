@@ -70,7 +70,7 @@ def main():
     if not os.path.isfile(args.checkpoint):
         raise FileNotFoundError(
             f"checkpoint not found: {args.checkpoint}. "
-            "Train first with: bash examples/train_adder_ndigit3.sh"
+            "Train first with: bash examples/adder/train_ndigit3.sh"
         )
 
     device = "cuda" if args.device == "auto" and torch.cuda.is_available() else args.device
